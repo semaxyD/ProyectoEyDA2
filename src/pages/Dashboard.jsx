@@ -4,9 +4,13 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { PlusCircle, BookOpen, CheckSquare } from 'lucide-react';
+import { signOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
+import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
   const { toast } = useToast();
+  const  navigate = useNavigate();
 
   const container = {
     hidden: { opacity: 0 },
@@ -23,6 +27,19 @@ function Dashboard() {
     show: { opacity: 1, y: 0 }
   };
 
+  const handleLogout = async () =>{
+    try{
+      await signOut(auth);
+      navigate('/');
+    }catch(error){
+      toast({
+        title: 'Error',
+        description: `Hubo un error al cerrar sesión: ${error.message}`,
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <motion.div
       variants={container}
@@ -36,6 +53,19 @@ function Dashboard() {
       >
         Bienvenido a tu Dashboard
       </motion.h1>
+
+      <motion.div
+        variants={item}
+        className='text-right'
+      >
+        <Button
+          onClick={handleLogout}
+          className="bg-red-600 text-white hover:bg-red-700"
+        >
+          <logOut className="mr-2 h-5 w-5"/>
+          Cerrar sesión
+        </Button>
+      </motion.div>
 
       <motion.div 
         variants={item}

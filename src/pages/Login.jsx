@@ -90,7 +90,7 @@ function Login(){
               onClick={handleLoginWithGoogle}
               className="w-full py-2 bg-gray-200 text-gray-800 rounded-md flex items-center justify-center gap-2 hover:bg-gray-300"
             >
-              <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo" className="w-5 h-5" />
+              <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google Logo" className="w-5 h-5" />
               Iniciar sesión con Google
             </button>
           </div>
