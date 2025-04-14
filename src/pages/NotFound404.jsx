@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'frame-motion';
+import { motion } from 'framer-motion';
 
 function NotFound404 (){
     return(

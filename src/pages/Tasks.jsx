@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'frame-motion';
-import { Construction } from 'lucid-react';
+import { motion } from 'framer-motion';
+import { Construction } from 'lucide-react';
 
 function Tasks(){
     return (

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
 
-function ProtectedRoute({ children }) {
+export function ProtectedRoute({ children }) {
     const [loading, setLoading] = useState(true);
     const [userLoggedIn, setUserLoggedIn] = useState(null);
 
@@ -25,5 +25,3 @@ function ProtectedRoute({ children }) {
 
     return children;
 }
-
-export default ProtectedRoute;

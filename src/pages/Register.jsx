@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, db, googleProvider } from '../lib/firebase';
-import { doc, setDoc, serverTimeStamp, getDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 function Register(){
@@ -25,8 +25,8 @@ function Register(){
                 email: user.email,
                 photoURL: '',
                 role: 'user',
-                createdAt: serverTimeStamp(),
-                lastLogin: serverTimeStamp(),
+                createdAt: serverTimestamp(),
+                lastLogin: serverTimestamp(),
                 settings: {
                     notifications: 'enabled',
                     theme: 'light'
@@ -54,8 +54,8 @@ function Register(){
                     email: user.email,
                     photoURL: user.photoURL,
                     role: 'user',
-                    createdAt: serverTimeStamp(),
-                    lastLogin: serverTimeStamp(),
+                    createdAt: serverTimestamp(),
+                    lastLogin: serverTimestamp(),
                     settings: {
                         notifications: 'enabled',
                         theme: 'light'
