@@ -36,13 +36,16 @@ function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100 px-4">
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-purple-100 to-blue-100">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center"
       >
+        <h1 className="text-3xl font-bold text-[#284dcb] mb-2">UTrackTask</h1>
+        <p className="text-sm text-gray-600 mb-6 italic">Organiza tu día, alcanza tus metas.</p>
+
         <h2 className="text-2xl font-semibold text-[#284dcb] mb-6">
           Iniciar sesión
         </h2>
@@ -68,7 +71,7 @@ function Login() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2 bg-gradient-to-r from-[#284dcb] to-[#4168e3] text-white rounded-md hover:opacity-90 mt-2"
+            className="w-full py-2 bg-gradient-to-r from-[#284dcb] to-[#4168e3] text-white rounded-md hover:scale-105 transition-transform"
           >
             {isSubmitting ? 'Cargando...' : 'Iniciar sesión'}
           </button>
