@@ -1,8 +1,8 @@
 import React from "react";
-import * as AvatarPrimitive from "@@radix-ui/react-avatar";
-import { cn } from "utils";
+import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import { cn } from "../../lib/utils";
 
-const avatar = React.forwardRef(({className, ...props},ref) => (
+const Avatar = React.forwardRef(({className, ...props},ref) => (
     <AvatarPrimitive.Root
     ref={fer}
     className={cn(
@@ -12,7 +12,7 @@ const avatar = React.forwardRef(({className, ...props},ref) => (
     {...props}
     />
 ));
-avatar.displayName = AvatarPrimitive.AvatarPrimitive.Root.displayName;
+Avatar.displayName = AvatarPrimitive.AvatarPrimitive.Root.displayName;
 
 const AvatarImage = React.forwardRef(({ className, ...props }, ref) => (
     <AvatarPrimitive.AvatarImage
@@ -35,4 +35,4 @@ const AvatarFallback = React.forwardRef(({ className,...props}, ref) => (
 ));
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
-export { AvatarFallback, AvatarImage, AvatarFallback}
+export { Avatar, AvatarFallback, AvatarImage}

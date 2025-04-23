@@ -2,6 +2,8 @@ import React from "react";
 import { Routes, Route } from 'react-router-dom';
 import {ProtectedRoute} from '../components/ProtectedRoute'
 
+import Layout from '../components/Layouts'
+
 // Importar tus páginas
 import Login from '../pages/Login';
 import Register from '../pages/Register';
@@ -19,38 +21,12 @@ const AppRoutes = () =>{
             <Route path="/register" element={<Register/>}/>
 
             {/* Rutas protegidas */}
-            <Route 
-                path="/dashboard" 
-                element={
-                    <ProtectedRoute>
-                        <Dashboard/>
-                    </ProtectedRoute>
-                }
-            />
-            <Route 
-                path="/subjects" 
-                element={
-                    <ProtectedRoute>
-                        <Subjects/>
-                    </ProtectedRoute>
-                }
-            />
-            <Route 
-                path="/tasks"
-                element={
-                    <ProtectedRoute>
-                        <Tasks/>
-                    </ProtectedRoute>
-                }
-            />
-            <Route 
-                path="/grades" 
-                element={
-                    <ProtectedRoute>
-                        <Grades/>
-                    </ProtectedRoute>
-                }
-            />
+            <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/subjects" element={<Subjects />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/grades" element={<Grades />} />
+            </Route>
 
             {/* Ruta no encontrada */}
             <Route path="*" element={<NotFound404/>}/>            

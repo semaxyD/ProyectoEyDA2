@@ -5,6 +5,7 @@ import { BookOpen, CheckSquare, GraduationCap, Home, LogOut, LogIn } from 'lucid
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Outlet } from "react-router-dom";
 
 const navItems = [
     {path: '/',icon: Home, label: 'Dashboard'},
@@ -13,7 +14,7 @@ const navItems = [
     {path: '/grades',icon: GraduationCap, label: 'Notas'},
 ];
 
-function Layout({ children }){
+function Layout(){
     const location = useLocation();
     const { user, login, logout } = useAuth();
 
@@ -107,7 +108,7 @@ function Layout({ children }){
             </nav>
 
             <main className="container mx-auto px-4 pt-6 pb-20 md:pt-20 md:pb-6">
-                [ children ]
+                <Outlet />
             </main>
         </div>
     );
