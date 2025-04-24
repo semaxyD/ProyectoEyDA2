@@ -16,7 +16,7 @@ const navItems = [
 
 function Layout(){
     const location = useLocation();
-    const { user, login, logout } = useAuth();
+    const { user, login, logout } = useAuth() ?? {};
 
     return (
         <div className="min-h-screen">
@@ -24,8 +24,8 @@ function Layout(){
                 <div className="container mx-auto px-4">
                     <div className="flex justify-between items-center h-16">
                         <div className="hidden md:flex items-center gap-2">
-                            <img src="/vite.svg" alt="Logo" className="w-8 h-8"/>
-                            <span className="font bold text-lg gradient-text">UTrackTask</span>
+                            <img src="/logoApp.svg" alt="Logo" className="w-8 h-8"/>
+                            <span className="text-xl font-bold text-[#284dcb] mb-2">UTrackTask</span>
                         </div>
 
                         <div className="flex justify-center intems-center gap-6 flex-1 md:flex-none md:justify-center">

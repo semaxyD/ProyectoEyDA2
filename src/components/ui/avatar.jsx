@@ -4,7 +4,7 @@ import { cn } from "../../lib/utils";
 
 const Avatar = React.forwardRef(({className, ...props},ref) => (
     <AvatarPrimitive.Root
-    ref={fer}
+    ref={ref}
     className={cn(
         "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
         className
@@ -12,10 +12,10 @@ const Avatar = React.forwardRef(({className, ...props},ref) => (
     {...props}
     />
 ));
-Avatar.displayName = AvatarPrimitive.AvatarPrimitive.Root.displayName;
+Avatar.displayName = AvatarPrimitive.Root.displayName;
 
 const AvatarImage = React.forwardRef(({ className, ...props }, ref) => (
-    <AvatarPrimitive.AvatarImage
+    <AvatarPrimitive.Image
     ref={ref}
     className={cn("aspect-square h-full w-full",className)}
     {...props}

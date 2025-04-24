@@ -58,5 +58,8 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+
+  // Devuelve objeto vacío por defecto si aún no hay contexto
+  return context || { user: null, login: () => {}, logout: () => {}, loading: true };
 }

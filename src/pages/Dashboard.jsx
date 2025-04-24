@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { PlusCircle, BookOpen, CheckSquare } from 'lucide-react';
+import { PlusCircle, BookOpen, CheckSquare, LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -51,7 +51,7 @@ function Dashboard() {
         variants={item}
         className="text-4xl font-bold gradient-text"
       >
-        Bienvenido a tu Dashboard
+        Bienvenido a tu DashBoard 😉
       </motion.h1>
 
       <motion.div
@@ -62,7 +62,7 @@ function Dashboard() {
           onClick={handleLogout}
           className="bg-red-600 text-white hover:bg-red-700"
         >
-          <logOut className="mr-2 h-5 w-5"/>
+          <LogOut className="mr-2 h-5 w-5"/>
           Cerrar sesión
         </Button>
       </motion.div>
