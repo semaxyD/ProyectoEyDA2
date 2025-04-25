@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Outlet } from "react-router-dom";
 
 const navItems = [
-    {path: '/',icon: Home, label: 'Dashboard'},
+    {path: '/dashboard',icon: Home, label: 'Dashboard'},
     {path: '/subjects',icon: BookOpen, label: 'Materias'},
     {path: '/tasks',icon: CheckSquare, label: 'Tareas'},
     {path: '/grades',icon: GraduationCap, label: 'Notas'},
@@ -39,10 +39,10 @@ function Layout(){
                                 >
                                     <span className="absolute -inset-4 rounded-xl bg-[#284dcb]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <Icon className="h-5 w-5 md:h-6 md:w-6 transition-transform group-hover:scale-110" />
-                                    <span className="mt-1 text-[10px] md:text-xs">{label}</span>
+                                    <span className="mt-1 h-0 text-[10px] md:text-xs">{label}</span>
                                     {location.pathname === path && (
                                         <motion.div
-                                            LayoutId="activeTab"
+                                            layoutId="activeTab"
                                             className="absolute bottom-0 h-1 w-8 bg-gradient-to-r from-[#284dcb] to-[#4168e3] rounded-full"
                                             initial={false}
                                             transition={{ type: "string", stiffness: 500, damping: 30}}

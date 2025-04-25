@@ -7,9 +7,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     cors: true,
-    headers: {
-      'Cross-Origin-Embedder-Policy': 'credentialless',
-    },
     allowedHosts: true,
   },
   resolve: {
