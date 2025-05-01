@@ -116,7 +116,7 @@ function Subjects() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-xl font-semibold">{subject.name}</h3>
-                    <p className="text-sm text-gray-600">Prof. {subject.professor}</p>
+                    <p className="text-sm text-gray-600">{subject.professor}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -155,7 +155,7 @@ function Subjects() {
                   </p>
                 </div>
     
-                <div className="pt-4 border-t border-gray-100">
+                <div className="pt-4 border-t border-blue-300">
                   <div className="text-sm text-gray-600">
                     <span className="font-medium">Estructura de Notas:</span>
                     <div className="grid grid-cols-3 gap-2 mt-2">
