@@ -159,15 +159,19 @@ function Subjects() {
                   <div className="text-sm text-gray-600">
                     <span className="font-medium">Estructura de Notas:</span>
                     <div className="grid grid-cols-3 gap-2 mt-2">
-                      <div className="text-center p-2 bg-gray-50 rounded">
-                        <div className="font-medium">Primer Corte</div>
+                      <div className="text-center p-2 rounded">
+                        <div className="font-medium">1° Corte</div>
                         <div>{subject.gradeStructure?.firstCut}%</div>
                       </div>
-                      <div className="text-center p-2 bg-gray-50 rounded">
-                        <div className="font-medium">Segundo Corte</div>
+                      <div className="text-center p-2 rounded">
+                        <div className="font-medium">2° Corte</div>
                         <div>{subject.gradeStructure?.secondCut}%</div>
                       </div>
-                      <div className="text-center p-2 bg-gray-50 rounded">
+                      <div className="text-center p-2 rounded">
+                        <div className="font-medium">3° Corte</div>
+                        <div>{subject.gradeStructure?.thirdCut}%</div>
+                      </div>
+                      <div className="text-center p-2 rounded">
                         <div className="font-medium">Final</div>
                         <div>{subject.gradeStructure?.finalExam}%</div>
                       </div>
