@@ -15,6 +15,8 @@ function Subjects() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [subjects, setSubjects] = useState([]);
+  const [subjectToDelete, setSubjectToDelete] = useState(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -138,7 +140,10 @@ function Subjects() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(subject.id)}
+                      onClick={() => {
+                        setSubjectToDelete(subject.id);
+                        setIsDeleteModalOpen(true);
+                      }}
                       className="text-red-500 hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -205,6 +210,36 @@ function Subjects() {
           subject={selectedSubject}
           onSuccess={fetchSubjects}
         />
+        {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 w-80">
+            <h2 className="text-xl font-semibold mb-4">¿Eliminar materia?</h2>
+            <p className="mb-4">Esta acción no se puede deshacer.</p>
+            <div className="flex justify-between gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="w-1/2"
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={async () => {
+                  await handleDelete(subjectToDelete);
+                  setIsDeleteModalOpen(false);
+                  setSubjectToDelete(null);
+                }}
+                className="w-1/2"
+              >
+                Eliminar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       </motion.div>
     </div>
   );
