@@ -98,7 +98,7 @@ function Dashboard() {
   },[]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-violet-50 p-6 ">
+    <div className="min-h-screen bg-auto p-6 ">
       <motion.div
         variants={container}
         initial="hidden"

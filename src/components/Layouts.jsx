@@ -37,8 +37,9 @@ function Layout() {
     }
   };
 
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-violet-50">
       <nav className="fixed bottom-0 left-0 right-0 md:top-0 md:bottom-auto z-50 bg-white/80 backdrop-blur-md shadow-md">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-16">
@@ -77,14 +78,13 @@ function Layout() {
             <div className="hidden md:flex items-center gap-3">
               {user ? (
                 <>
-                  <Avatar className="h-10 w-10 flex items-center justify-center">
-                  {user?.photoURL ? (
-                        <AvatarImage src={user.photoURL} />
-                    ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-300 via-blue-200 to-pink-200 text-gray-800 flex items-center justify-center font-semibold text-lg uppercase">
-                        <span className="flex items-center justify-center w-full h-full">{user?.email?.charAt(0)}</span>
-                        </div>
-                    )}
+                  <Avatar className="h-10 w-10">
+                    {user.photoURL ? (
+                      <AvatarImage src={user.photoURL} alt="Foto de perfil" />
+                    ) : null}
+                    <AvatarFallback className="bg-gradient-to-tr from-purple-300 via-blue-200 to-pink-200 text-gray-800 font-semibold text-lg uppercase flex items-center justify-center">
+                      {user?.email?.charAt(0) ?? "U"}
+                    </AvatarFallback>
                   </Avatar>
                   <Button
                     variant="ghost"
