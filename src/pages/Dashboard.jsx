@@ -1,17 +1,17 @@
-
 import React, { useEffect, useState }from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { PlusCircle,SquareLibrary, NotebookText, BookOpen, CheckSquare} from 'lucide-react';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, query, where, getDocs, getAggregateFromServer, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, getAggregateFromServer, getDocFromServer, onSnapshot } from 'firebase/firestore';
 import { TaskStack } from '../utils/TaskStack';
 import { SubjectLinkedList } from '../utils/SubjectLinkedList'
 import { useNavigate } from 'react-router-dom';
 import ProgressOverview from '../components/ProgressOverview';
+import { startOfWeek, format } from 'date-fns';
 
-//temporal
+
 import { inserMockData } from '../insertMockData';
 
 function Dashboard() {
@@ -20,6 +20,8 @@ function Dashboard() {
   const [subjects, setSubjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [userName, setUserName] = useState();
+  const [avanceGeneral, setAvanceGeneral] = useState(0);
+  const [progresoSemanal, setProgresoSemanal] = useState({});
 
   const container = {
     hidden: { opacity: 0 },
@@ -36,66 +38,56 @@ function Dashboard() {
     show: { opacity: 1, y: 0 }
   };
 
-  useEffect(() =>{
-    const fetchData = async () =>{
+  useEffect(() => {
+    const db = getFirestore();
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+    const userId = user.uid;
 
-      const db = getFirestore();
-      const auth = getAuth();
-      const user = auth.currentUser;
+    const subjectsQuery = query(
+      collection(db, 'subjects'),
+      where('userId', '==', userId),
+      where('isActive', '==', true)
+    );
+    const unsubscribeSubjects = onSnapshot(subjectsQuery, (subjectsSnapshot) => {
+      const subjectsData = subjectsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const subjectList = new SubjectLinkedList();
+      subjectsData.forEach((subject) => subjectList.insertSorted(subject));
+      setSubjects(subjectList.toArray());
+    });
 
-      if(!user){
-        console.error("No hay un usuario logueado");
-        return;
-      }
+    const tasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', userId)
+    );
+    const unsubscribeTasks = onSnapshot(tasksQuery, (tasksSnapshot) => {
+      const tasksData = tasksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      //obtencion del nombre del usuario actual
-      if(user && user.displayName){
-        setUserName(user.displayName);
-      }
+      const total = tasksData.length;
+      const completadas = tasksData.filter(t => t.completed).length;
+      setAvanceGeneral(total > 0 ? (completadas / total) * 100 : 0);
 
-      const userId = user.uid;
+      const taskStack = new TaskStack();
+      tasksData.filter(t => !t.completed).forEach((task) => taskStack.push(task));
+      setTasks(taskStack.toArray());
 
-      try {
+      const completadasPorSemana = {};
+      tasksData.forEach(task => {
+        if (task.completed && task.completedAt) {
+          const fecha = task.completedAt.toDate ? task.completedAt.toDate() : new Date(task.completedAt);
+          const semana = format(startOfWeek(fecha, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+          completadasPorSemana[semana] = (completadasPorSemana[semana] || 0) + 1;
+        }
+      });
+      setProgresoSemanal(completadasPorSemana);
+    });
 
-        //Obtencion de vista previa de Materias
-        const subjectsQuery = query(
-          collection(db,'subjects'),
-          where('userId','==',userId),
-          where('isActive','==',true)
-        );
-        const subjectsSnapshot = await getDocs(subjectsQuery);
-        const subjectsData = subjectsSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-
-        //Uso de Linked List para agrupar por semestre
-        const subjectList = new SubjectLinkedList();
-        subjectsData.forEach((subject) => subjectList.insertSorted(subject));
-        setSubjects(subjectList.toArray());
-
-        //Obtencion de vista previa de Tareas pendientes
-        const tasksQuery = query(
-          collection(db,'tasks'),
-          where('userId','==',userId),
-          where('completed','==',false)
-        );
-        const tasksSnapshot = await getDocs(tasksQuery);
-        const tasksData = tasksSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-
-        //Organizacion de las tareas en una estructura de pila
-        const taskStack = new TaskStack();
-        tasksData.forEach((task) => taskStack.push(task));
-        setTasks(taskStack.toArray());
-
-      }catch(e){
-        console.error("Error al obtener datos de FireStorage: ",e.message);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar los datos del dashboard.",
-          variants: "destructive"
-        });
-      }
+    return () => {
+      unsubscribeSubjects();
+      unsubscribeTasks();
     };
-    fetchData();
-  },[]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-violet-50 p-6 ">
@@ -112,7 +104,7 @@ function Dashboard() {
           📈 Bienvenido a tu DashBoard{userName && `, ${userName}`}
         </motion.h1>
         <hr className=" mb-2 h-1 w-full bg-gradient-to-r from-purple-300 to-blue-300 rounded-full border-none shadow-none outline-none" />
-        <ProgressOverview/>
+        <ProgressOverview progresoSemanal={progresoSemanal} />
 
         <motion.div 
           variants={item}
@@ -142,7 +134,7 @@ function Dashboard() {
                 <p className="text-[#585858]">No hay materias registradas</p>
               )}
               <Button
-                onClick={() => navigate('/subjects')} // Navegar a la página de todas las materias
+                onClick={() => navigate('/subjects')} 
                 className="w-full bg-gradient-to-r from-[#284dcb] to-[#4168e3] hover:opacity-90 transition-opacity"
               >
                 <SquareLibrary className="mr-2 h-4 w-4 text-white" />
@@ -178,8 +170,10 @@ function Dashboard() {
                   <div key={task.id} className="bg-white rounded-xl shadow p-4 flex justify-between items-center hover:scale-[1.01] transition-transform">
                     <div>
                       <h3 className="text-lg font-semibold text-[#284dcb]">{task.title}</h3>
-                      <p className="text-sm text-gray-600">Pertenece a {task.tags[0]}</p>
-                      <p className="text-sm text-gray-500">Prioridad: {task.priority}</p>
+                      <p className="text-sm text-gray-600">
+                        Pertenece a {task.tags && task.tags.length > 0 ? task.tags[0] : 'Sin materia'}
+                      </p>
+                      <p className="text-sm text-gray-500">Prioridad: {task.priority || 'Sin prioridad'}</p>
                     </div>
                   </div>
                   ))}
@@ -188,7 +182,7 @@ function Dashboard() {
                 <p className="text-[#585858]">No hay tareas pendientes 👌💨</p>
               )}
               <Button
-                onClick={() => navigate('/tasks')} // Navegar a la página de todas las tareas
+                onClick={() => navigate('/tasks')} 
                 className="w-full bg-gradient-to-r from-[#284dcb] to-[#4168e3] hover:opacity-90 transition-opacity"
               >
                 <NotebookText className="mr-2 h-4 w-4 text-white" />
