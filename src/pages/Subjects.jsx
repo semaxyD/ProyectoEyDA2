@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { PlusCircle, Pencil, Trash2, MessageCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
 
 import {
   collection,
@@ -49,6 +50,7 @@ function prepareSubjectForModal(subject) {
 export default function Subjects() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [subjects, setSubjects] = useState([]);
   const [subjectToDelete, setSubjectToDelete] = useState(null);
@@ -58,7 +60,6 @@ export default function Subjects() {
   const [action, setAction] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all subjects for the user
   const fetchSubjects = async () => {
     if (!user) return;
     setLoading(true);
@@ -119,8 +120,6 @@ export default function Subjects() {
     });
   };
 
-  // === Aquí empieza el modal integrado ===
-
   const [modalLoading, setModalLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -135,7 +134,6 @@ export default function Subjects() {
     },
   });
 
-  // Cuando cambia selectedSubject o isModalOpen, inicializa o resetea el formData
   useEffect(() => {
     if (selectedSubject && isModalOpen) {
       setFormData({
@@ -151,7 +149,6 @@ export default function Subjects() {
         },
       });
     } else if (isModalOpen) {
-      // reset form when creating new subject
       setFormData({
         name: '',
         professor: '',
@@ -308,25 +305,26 @@ return (
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {subjects.map((subject) => (
             <motion.div
               key={subject.id}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="glass-card rounded-xl p-6 space-y-4"
+              className="bg-white rounded-2xl shadow-lg p-6 space-y-4 border border-blue-100 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden"
             >
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="text-xl font-semibold">{subject.name}</h3>
-                  <p className="text-sm text-gray-600">{subject.professor}</p>
+                  <h3 className="text-2xl font-bold text-blue-700 mb-1">{subject.name}</h3>
+                  <p className="text-sm text-gray-500 italic mb-1">{subject.professor}</p>
+                  <p className="text-xs text-blue-400 font-medium mb-2">{subject.schedule}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleOpenChat(subject)}
-                    className="text-[#284dcb] hover:text-[#4168e3]"
+                    className="text-blue-500 hover:text-blue-700"
                     title="Chat materia"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -339,7 +337,7 @@ return (
                       setAction("edit");
                       setIsModalOpen(true);
                     }}
-                    className="text-[#284dcb] hover:text-[#4168e3]"
+                    className="text-blue-500 hover:text-blue-700"
                     title="Editar materia"
                   >
                     <Pencil className="h-4 w-4" />
@@ -351,7 +349,7 @@ return (
                       setSubjectToDelete(subject.id);
                       setIsDeleteModalOpen(true);
                     }}
-                    className="text-red-500 hover:text-red-600"
+                    className="text-red-500 hover:text-red-700"
                     title="Eliminar materia"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -359,34 +357,38 @@ return (
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-sm">
-                  <span className="font-medium">Horario:</span> {subject.schedule}
-                </p>
-                <p className="text-sm">
-                  <span className="font-medium">Créditos:</span> {subject.credits}
-                </p>
+              <div className="flex flex-col gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-semibold">Créditos: {subject.credits}</span>
+                  <span className="inline-block bg-cyan-100 text-cyan-700 text-xs px-2 py-1 rounded-full font-semibold">Horario: {subject.schedule}</span>
+                </div>
+                <button
+                  className="mt-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg shadow hover:from-blue-600 hover:to-cyan-600 transition-colors text-sm font-semibold w-fit"
+                  onClick={() => navigate('/grades')}
+                >
+                  Calcular nota final
+                </button>
               </div>
 
-              <div className="pt-4 border-t border-blue-300">
+              <div className="pt-4 border-t border-blue-100">
                 <div className="text-sm text-gray-600">
-                  <span className="font-medium">Estructura de Notas:</span>
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    <div className="text-center p-2 rounded">
-                      <div className="font-medium">1° Corte</div>
-                      <div>{subject.gradeStructure?.firstCut}%</div>
+                  <span className="font-medium text-blue-700">Estructura de Notas:</span>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    <div className="text-center p-2 rounded bg-blue-50">
+                      <div className="font-medium text-blue-600">1° Corte</div>
+                      <div className="text-lg font-bold">{subject.gradeStructure?.firstCut}%</div>
                     </div>
-                    <div className="text-center p-2 rounded">
-                      <div className="font-medium">2° Corte</div>
-                      <div>{subject.gradeStructure?.secondCut}%</div>
+                    <div className="text-center p-2 rounded bg-blue-50">
+                      <div className="font-medium text-blue-600">2° Corte</div>
+                      <div className="text-lg font-bold">{subject.gradeStructure?.secondCut}%</div>
                     </div>
-                    <div className="text-center p-2 rounded">
-                      <div className="font-medium">3° Corte</div>
-                      <div>{subject.gradeStructure?.thirdCut}%</div>
+                    <div className="text-center p-2 rounded bg-blue-50">
+                      <div className="font-medium text-blue-600">3° Corte</div>
+                      <div className="text-lg font-bold">{subject.gradeStructure?.thirdCut}%</div>
                     </div>
-                    <div className="text-center p-2 rounded">
-                      <div className="font-medium">Final</div>
-                      <div>{subject.gradeStructure?.finalExam}%</div>
+                    <div className="text-center p-2 rounded bg-blue-50">
+                      <div className="font-medium text-blue-600">Final</div>
+                      <div className="text-lg font-bold">{subject.gradeStructure?.finalExam}%</div>
                     </div>
                   </div>
                 </div>
