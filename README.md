@@ -1,10 +1,14 @@
-# 🎓 Gestor de Pendientes y Cálculo de Notas para Estudiantes
+# 🎓 Gestor de Pendientes y Cálculo de Notas para Estudiantes - UtrackTask
 
 ## 📌 Descripción
-Una aplicación web desarrollada con **React + Vite** (sin TypeScript), pensada para ayudar a estudiantes a organizar sus materias, tareas y calcular sus notas finales. El sistema permitirá:
+Una aplicación web desarrollada con **React + Vite**, pensada para ayudar a estudiantes a organizar sus materias, tareas y calcular sus notas finales. El sistema permitirá:
 - Gestionar pendientes académicos.
 - Calcular cuánto necesita un estudiante para aprobar una materia.
 
+---
+## 🪢 Links de la Entrega
+- Link del diseño propuesto en Figma:
+- Link a el despliegue del aplicativo web:
 ---
 
 ## 🧰 Tecnologías a Utilizar
@@ -16,10 +20,10 @@ Una aplicación web desarrollada con **React + Vite** (sin TypeScript), pensada 
 - 🟢 Hooks (`useState`, `useEffect`, `useContext`, `useReducer`, etc.).
 
 ### 🔶 Base de Datos
-- 🔸 **Firebase Firestore** (NoSQL, integración sencilla con React).
+- 🔸 **Firebase Firestore** (NoSQL y integración sencilla con React).
 
 ### 🕸️ Otras Tecnologías
-- 🔹 WebSockets *(si se implementa colaboración en tiempo real)*.
+- 🔹 WebSockets (implementado con realtime Database de firebase).
 - 🔹 TailwindCSS (para diseño responsivo y moderno).
 
 ---
