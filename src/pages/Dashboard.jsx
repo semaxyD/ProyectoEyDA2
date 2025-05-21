@@ -177,18 +177,6 @@ function Dashboard() {
                 <NotebookText className="mr-2 h-4 w-4 text-white" />
                 <p className='text-white'>Ver todas las tareas</p>
               </Button>
-              <Button
-                onClick={() => {
-                  toast({
-                    title: "Próximamente",
-                    description: "Esta función estará disponible pronto",
-                  });
-                }}
-                className="w-full bg-gradient-to-r from-[#284dcb] to-[#4168e3] hover:opacity-90 transition-opacity"
-              >
-                <PlusCircle className="mr-2 h-4 w-4 text-white" />
-                <p className='text-white'>Agregar Tarea</p>
-              </Button>
             </div>
           </div>
         </motion.div>
