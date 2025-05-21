@@ -8,7 +8,7 @@ Una aplicación web desarrollada con **React + Vite**, pensada para ayudar a est
 ---
 ## 🪢 Links de la Entrega
 - Link del diseño propuesto en Figma: https://www.figma.com/design/HIw62heApnoQE7CuySLIOe/Estructuras?node-id=0-1&t=FzZUaOer2Hgkrmmt-1
-- Link a el despliegue del aplicativo web:
+- Link a el despliegue del aplicativo web: https://utracktask.netlify.app
 ---
 
 ## 🧰 Tecnologías a Utilizar
