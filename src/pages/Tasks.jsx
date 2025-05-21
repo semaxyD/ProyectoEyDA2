@@ -5,7 +5,9 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import TaskForm from '../components/tasks/TaskForm';
 import TaskItem from '../components/tasks/TaskItem';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Sparkles } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, differenceInDays } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 function Tasks() {
   const { user } = useAuth();
@@ -13,6 +15,8 @@ function Tasks() {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('dueDate');
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [currentStat, setCurrentStat] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -73,6 +77,165 @@ function Tasks() {
 
   const handleTaskDeleted = (taskId) => {
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+  };
+
+  const calculateTaskStats = () => {
+    const now = new Date();
+    const startOfCurrentMonth = startOfMonth(now);
+    const endOfCurrentMonth = endOfMonth(now);
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    const endOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 6));
+    const lastWeekStart = new Date(startOfWeek);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    const lastWeekEnd = new Date(endOfWeek);
+    lastWeekEnd.setDate(lastWeekEnd.getDate() - 7);
+    
+    const tasksThisMonth = tasks.filter(task => {
+      const taskDate = task.completedAt?.toDate?.() || task.createdAt?.toDate?.();
+      return taskDate >= startOfCurrentMonth && taskDate <= endOfCurrentMonth;
+    });
+    
+    const tasksThisWeek = tasks.filter(task => {
+      const taskDate = task.completedAt?.toDate?.() || task.createdAt?.toDate?.();
+      return taskDate >= startOfWeek && taskDate <= endOfWeek;
+    });
+
+    const tasksLastWeek = tasks.filter(task => {
+      const taskDate = task.completedAt?.toDate?.() || task.createdAt?.toDate?.();
+      return taskDate >= lastWeekStart && taskDate <= lastWeekEnd;
+    });
+    
+    const completedThisMonth = tasksThisMonth.filter(task => task.completed);
+    const completedThisWeek = tasksThisWeek.filter(task => task.completed);
+    const completedLastWeek = tasksLastWeek.filter(task => task.completed);
+    
+    const highPriorityCompleted = tasks.filter(task => 
+      task.completed && task.priority === 'alta'
+    ).length;
+    
+    const mediumPriorityCompleted = tasks.filter(task =>
+      task.completed && task.priority === 'media'
+    ).length;
+
+    let currentStreak = 0;
+    let checkingDate = new Date();
+    while (true) {
+      const tasksCompletedOnDay = tasks.filter(task => {
+        const completedDate = task.completedAt?.toDate?.();
+        return completedDate && format(completedDate, 'yyyy-MM-dd') === format(checkingDate, 'yyyy-MM-dd');
+      }).length;
+      
+      if (tasksCompletedOnDay > 0) {
+        currentStreak++;
+        checkingDate.setDate(checkingDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    
+    const oldestPending = tasks
+      .filter(task => !task.completed)
+      .sort((a, b) => a.createdAt?.toDate?.() - b.createdAt?.toDate?.())[0];
+    
+    const stats = [];
+    
+    if (tasksThisMonth.length > 0) {
+      const completionRate = Math.round((completedThisMonth.length / tasksThisMonth.length) * 100);
+      stats.push(`Has completado el ${completionRate}% de tus tareas este mes, ¡sigue así!`);
+    }
+    
+    if (completedThisWeek.length > 0 && completedLastWeek.length > 0) {
+      const difference = completedThisWeek.length - completedLastWeek.length;
+      if (difference > 0) {
+        stats.push(`¡Esta semana has completado ${difference} tareas más que la semana pasada!`);
+      } else if (difference < 0) {
+        stats.push(`Esta semana has completado ${Math.abs(difference)} tareas menos que la semana pasada. ¡Tú puedes!`);
+      }
+    }
+
+    if (currentStreak > 0) {
+      if (currentStreak === 1) {
+        stats.push("¡Has completado tareas hoy! ¿Podrás mantener la racha mañana?");
+      } else {
+        stats.push(`¡Llevas ${currentStreak} días seguidos completando tareas! ¡Increíble racha!`);
+      }
+    }
+    
+    if (highPriorityCompleted > 0) {
+      stats.push(`¡Has completado ${highPriorityCompleted} tareas de alta prioridad!`);
+    }
+    
+    if (mediumPriorityCompleted > 0) {
+      stats.push(`Has completado ${mediumPriorityCompleted} tareas de prioridad media. ¡Buen trabajo!`);
+    }
+
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.completed).length;
+    if (totalTasks > 0) {
+      const efficiency = Math.round((completedTasks / totalTasks) * 100);
+      if (efficiency >= 75) {
+        stats.push(`¡Tu eficiencia en completar tareas es del ${efficiency}%! ¡Eres una máquina!`);
+      } else if (efficiency >= 50) {
+        stats.push(`Tu eficiencia en completar tareas es del ${efficiency}%. ¡Vamos por más!`);
+      }
+    }
+    
+    if (oldestPending) {
+      const daysOld = differenceInDays(now, oldestPending.createdAt?.toDate?.() || now);
+      if (daysOld > 0) {
+        if (daysOld > 7) {
+          stats.push(`¡Ups! Tienes una tarea pendiente desde hace ${daysOld} días. ¿Necesitas ayuda para organizarla?`);
+        } else {
+          stats.push(`Tu tarea más antigua pendiente tiene ${daysOld} días. ¡Tú puedes completarla!`);
+        }
+      }
+    }
+    
+    const completedToday = tasks.filter(task => {
+      const completedDate = task.completedAt?.toDate?.();
+      return completedDate && format(completedDate, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd');
+    }).length;
+    
+    if (completedToday > 0) {
+      if (completedToday >= 3) {
+        stats.push(`¡Wow! ¡Hoy has completado ${completedToday} tareas! ¡Eres un/a campeón/a!`);
+      } else {
+        stats.push(`¡Hoy has completado ${completedToday} tarea${completedToday !== 1 ? 's' : ''}! ¡Sigue así!`);
+      }
+    }
+    
+    const pendingHighPriority = tasks.filter(task => !task.completed && task.priority === 'alta').length;
+    if (pendingHighPriority > 0) {
+      stats.push(`Tienes ${pendingHighPriority} tarea${pendingHighPriority !== 1 ? 's' : ''} de alta prioridad pendiente${pendingHighPriority !== 1 ? 's' : ''}. ¡Enfócate en ellas!`);
+    }
+
+    if (tasksThisWeek.length > 0) {
+      const weeklyProgress = Math.round((completedThisWeek.length / tasksThisWeek.length) * 100);
+      if (weeklyProgress >= 80) {
+        stats.push(`¡Esta semana has completado el ${weeklyProgress}% de tus tareas! ¡Espectacular!`);
+      } else if (weeklyProgress >= 50) {
+        stats.push(`Esta semana has completado el ${weeklyProgress}% de tus tareas. ¡Vamos por más!`);
+      }
+    }
+    
+    if (stats.length === 0) {
+      const motivationalMessages = [
+        "¡Cada tarea completada es un paso hacia tus metas!",
+        "¡Hoy es un gran día para empezar!",
+        "La organización es la clave del éxito.",
+        "Pequeños pasos, grandes logros.",
+        "¡Tú puedes con todo lo que te propongas!"
+      ];
+      stats.push(motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]);
+    }
+    
+    return stats[Math.floor(Math.random() * stats.length)];
+  };
+
+  const handleShowStats = () => {
+    const stat = calculateTaskStats();
+    setCurrentStat(stat);
+    setShowStatsModal(true);
   };
 
   return (
@@ -144,6 +307,48 @@ function Tasks() {
           </div>
         </div>
       </motion.div>
+      <div className="fixed bottom-6 right-6 z-10">
+        <button
+          onClick={handleShowStats}
+          className="rounded-full bg-gradient-to-r from-[#284dcb] to-[#4168e3] p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+          title="Ver estadísticas curiosas"
+        >
+          <Sparkles className="h-6 w-6 text-white" />
+        </button>
+      </div>
+      
+      {showStatsModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={() => setShowStatsModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <Sparkles className="h-8 w-8 text-[#284dcb] mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                ¡Dato Curioso!
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {currentStat}
+              </p>
+              <button
+                onClick={() => setShowStatsModal(false)}
+                className="bg-gradient-to-r from-[#284dcb] to-[#4168e3] text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
+              >
+                ¡Genial!
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React, { useEffect, useState }from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { PlusCircle,SquareLibrary, NotebookText, BookOpen, CheckSquare} from 'lucide-react';
+import { PlusCircle,SquareLibrary, NotebookText, BookOpen, CheckSquare, Sparkles } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs, getAggregateFromServer, getDocFromServer, onSnapshot } from 'firebase/firestore';
 import { TaskStack } from '../utils/TaskStack';
@@ -22,6 +22,41 @@ function Dashboard() {
   const [userName, setUserName] = useState();
   const [avanceGeneral, setAvanceGeneral] = useState(0);
   const [progresoSemanal, setProgresoSemanal] = useState({});
+  const [showPlusModal, setShowPlusModal] = useState(false);
+
+  const motivationalQuotes = [
+    "El éxito es la suma de pequeños esfuerzos repetidos cada día.",
+    "No tienes que ser grande para empezar, pero tienes que empezar para ser grande.",
+    "La disciplina es el puente entre metas y logros.",
+    "Hoy es un buen día para aprender algo nuevo.",
+    "Cree en ti y todo será posible.",
+    "El futuro pertenece a quienes creen en la belleza de sus sueños.",
+    "No cuentes los días, haz que los días cuenten.",
+    "La constancia es la clave del éxito.",
+    "Nunca es tarde para ser quien podrías haber sido.",
+    "Hazlo con pasión o no lo hagas."
+  ];
+  const studyTips = [
+    "Divide tus tareas grandes en partes pequeñas y manejables.",
+    "Estudia en intervalos de 25 minutos y toma descansos cortos (Técnica Pomodoro).",
+    "Haz resúmenes o mapas mentales para retener mejor la información.",
+    "Elimina distracciones y crea un ambiente de estudio cómodo.",
+    "Repasa tus apuntes antes de dormir para mejorar la memoria.",
+    "Prioriza tus tareas más importantes al inicio del día.",
+    "Explica lo que aprendiste a otra persona para reforzar tu comprensión.",
+    "Utiliza colores y subrayados para destacar lo más importante.",
+    "No olvides hidratarte y dormir bien, tu cerebro lo necesita.",
+    "Recompénsate después de cumplir tus objetivos de estudio."
+  ];
+
+  const [randomQuote, setRandomQuote] = useState("");
+  const [randomTip, setRandomTip] = useState("");
+
+  const handleShowPlusModal = () => {
+    setRandomQuote(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
+    setRandomTip(studyTips[Math.floor(Math.random() * studyTips.length)]);
+    setShowPlusModal(true);
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -181,6 +216,44 @@ function Dashboard() {
           </div>
         </motion.div>
       </motion.div>
+
+      <div className="fixed bottom-6 right-6 z-10">
+         <Button
+           onClick={handleShowPlusModal}
+           className="rounded-full bg-gradient-to-r from-[#284dcb] to-[#4168e3] hover:opacity-90 transition-opacity p-2"
+         >
+           <Sparkles className="h-6 w-6 text-white" />
+         </Button>
+      </div>
+
+      {showPlusModal && (
+         <motion.div
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           exit={{ opacity: 0 }}
+           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+           onClick={() => setShowPlusModal(false)}
+         >
+           <motion.div
+             initial={{ scale: 0.8 }}
+             animate={{ scale: 1 }}
+             exit={{ scale: 0.8 }}
+             className="bg-white rounded-lg p-6 w-80 text-center"
+             onClick={(e) => e.stopPropagation()}
+           >
+             <h2 className="text-xl font-semibold mb-2 text-[#284dcb]">✨ Frase motivacional</h2>
+             <p className="mb-4 italic text-gray-700">{randomQuote}</p>
+             <h3 className="text-lg font-semibold mb-1 text-[#4168e3]">Tip de estudio</h3>
+             <p className="mb-4 text-gray-600">{randomTip}</p>
+             <Button
+               onClick={() => setShowPlusModal(false)}
+               className="mt-4 bg-gradient-to-r from-[#284dcb] to-[#4168e3] text-white"
+             >
+               ¡A por ello!
+             </Button>
+           </motion.div>
+         </motion.div>
+      )}
     </div>
   );
 }
