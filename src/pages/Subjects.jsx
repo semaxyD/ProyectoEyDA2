@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -6,6 +6,7 @@ import { PlusCircle, Pencil, Trash2, MessageCircle, Loader2 } from 'lucide-react
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
+
 
 import {
   collection,
@@ -16,6 +17,10 @@ import {
   doc,
   addDoc,
   updateDoc,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  serverTimestamp
 } from 'firebase/firestore';
 
 function prepareSubjectForModal(subject) {
@@ -59,6 +64,60 @@ export default function Subjects() {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [action, setAction] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [activeChatSubject, setActiveChatSubject] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    if (!activeChatSubject || !isChatOpen) return;
+
+    const fetchChatDoc = async () => {
+      const q = query(collection(db, 'subjectChat'), where('subjectName', '==', activeChatSubject.name));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const chatDoc = querySnapshot.docs[0];
+        const chatDocId = chatDoc.id;
+
+        const messagesRef = collection(db, 'subjectChat', chatDocId, 'messages');
+        const qMessages = query(messagesRef, orderBy('createdAt', 'asc'));
+
+        const unsubscribe = onSnapshot(qMessages, (snapshot) => {
+          const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setMessages(msgs);
+          setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+        });
+
+        // Guardar ID del documento de chat para futuros mensajes
+        setActiveChatSubject(prev => ({ ...prev, chatDocId }));
+
+        return () => unsubscribe();
+      } else {
+        console.warn("No se encontró el documento de chat para esta materia.");
+      }
+    };
+
+    fetchChatDoc();
+  }, [activeChatSubject, isChatOpen]);
+
+  const handleSendMessage = async () => {
+    const trimmed = newMessage.trim();
+    if (!trimmed || !activeChatSubject?.chatDocId) return;
+
+    await addDoc(
+      collection(db, 'subjectChat', activeChatSubject.chatDocId, 'messages'),
+      {
+        text: trimmed,
+        senderId: user.uid,
+        senderName: user.displayName || user.name ||'Anónimo',
+        createdAt: serverTimestamp(),
+      }
+    );
+
+    setNewMessage('');
+  };
 
   const fetchSubjects = async () => {
     if (!user) return;
@@ -67,10 +126,26 @@ export default function Subjects() {
     try {
       const q = query(collection(db, 'subjects'), where('userId', '==', user.uid));
       const querySnapshot = await getDocs(q);
-      const subjectsData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const subjectsData = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+
+        let gradeStructure = {};
+        try {
+          gradeStructure =
+            typeof data.gradeStructure === 'string'
+              ? JSON.parse(data.gradeStructure)
+              : data.gradeStructure || {};
+        } catch {
+          gradeStructure = {};
+        }
+
+        return {
+          id: doc.id,
+          ...data,
+          gradeStructure,
+        };
+      });
+
       setSubjects(subjectsData);
     } catch (error) {
       console.error('Error fetching subjects:', error);
@@ -89,7 +164,17 @@ export default function Subjects() {
   }, [user]);
 
   const handleDelete = async (subjectId) => {
+    if (!user) return;
     try {
+      const subjectChatDocRef = doc(db, 'subjectChat', subjectId);
+      const chatDocSnap = await getDoc(subjectChatDocRef);
+
+      if (chatDocSnap.exists()) {
+        await updateDoc(subjectChatDocRef, {
+          userIds: arrayRemove(user.uid),
+        });
+      }
+
       await deleteDoc(doc(db, 'subjects', subjectId));
       toast({
         title: 'Materia eliminada',
@@ -114,10 +199,13 @@ export default function Subjects() {
   };
 
   const handleOpenChat = (subject) => {
-    toast({
-      title: 'Próximamente',
-      description: 'El chat de la materia estará disponible pronto.',
-    });
+  setActiveChatSubject(subject);
+  setIsChatOpen(true);
+  };
+
+  const handleCloseChat = () => {
+  setIsChatOpen(false);
+  setActiveChatSubject(null);
   };
 
   const [modalLoading, setModalLoading] = useState(false);
@@ -202,6 +290,25 @@ export default function Subjects() {
 
     setModalLoading(true);
 
+    // Verificar si ya existe una materia con ese nombre para este usuario
+    const existing = await getDocs(
+      query(
+        collection(db, 'subjects'),
+        where('userId', '==', user.uid),
+        where('name', '==', formData.name.trim())
+      )
+    );
+
+    // Si existe y no estamos editando (o si estamos editando pero es otra materia con el mismo nombre)
+    if (!existing.empty && (!selectedSubject || existing.docs[0].id !== selectedSubject.id)) {
+      setModalLoading(false);
+      return toast({
+        title: 'Materia duplicada',
+        description: 'Ya tienes una materia con ese nombre.',
+        variant: 'destructive',
+      });
+    }
+
     try {
       const subjectData = {
         ...formData,
@@ -220,6 +327,7 @@ export default function Subjects() {
       } else {
         await addDoc(collection(db, 'subjects'), subjectData);
       }
+      await createOrJoinSubjectChat(subjectData.name);
 
       toast({
         title: action === 'edit' ? 'Materia actualizada' : 'Materia creada',
@@ -249,6 +357,28 @@ export default function Subjects() {
       });
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  const createOrJoinSubjectChat = async (subjectName) => {
+    const q = query(
+      collection(db, 'subjectChat'),
+      where('subjectName', '==', subjectName),
+      where('userIds', 'array-contains', user.uid)
+    );
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      // Ya existe un chat para esta materia y este usuario
+      return snapshot.docs[0].id;
+    } else {
+      // No existe, lo creamos
+      const newDoc = await addDoc(collection(db, 'subjectChat'), {
+        subjectName,
+        userIds: [user.uid],
+      });
+
+      return newDoc.id;
     }
   };
 
@@ -557,6 +687,64 @@ return (
             </div>
           </div>
         </div>
+      )}
+      {/* Modal para ver el chat grupal */}
+      {isChatOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setIsChatOpen(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.8 }}
+            className="bg-white rounded-lg p-6 w-full max-w-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-semibold mb-4">
+              Chat - {activeChatSubject?.name}
+            </h2>
+            <div className="flex flex-col h-[400px] overflow-y-auto space-y-2 border p-4 rounded-md bg-gray-100">
+              {messages.length === 0 && (
+                <p className="text-center text-gray-500">Aún no hay mensajes.</p>
+              )}
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`p-2 rounded-md max-w-[70%] break-words ${
+                    msg.senderId === user.uid
+                      ? "bg-blue-200 self-end"
+                      : "bg-white self-start"
+                  }`}
+                >
+                  <p className="text-sm font-semibold">{msg.senderName}</p>
+                  <p>{msg.text}</p>
+                </div>
+              ))}
+              <div ref={bottomRef} />
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Escribe un mensaje..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                className="flex-1 border rounded px-3 py-2"
+              />
+              <Button onClick={handleSendMessage}>Enviar</Button>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </motion.div>
   </div>
