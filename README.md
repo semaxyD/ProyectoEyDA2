@@ -1,5 +1,5 @@
 # 🎓 Gestor de Pendientes y Cálculo de Notas para Estudiantes - UtrackTask
-# Hecho por: Ricardo Stiven Gonzalez 2215602 - Sebastian Marinez Lopez 2220331
+## Hecho por: Ricardo Stiven Gonzalez 2215602 - Sebastian Marinez Lopez 2220331
 
 ## 📌 Descripción
 Una aplicación web desarrollada con **React + Vite**, pensada para ayudar a estudiantes a organizar sus materias, tareas y calcular sus notas finales. El sistema permitirá:
