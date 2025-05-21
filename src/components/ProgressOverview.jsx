@@ -28,6 +28,7 @@ ChartJS.register(
 export default function ProgressOverview() {
   const [completed, setCompleted] = useState(0)
   const [pending, setPending] = useState(0)
+  const [completedByDay, setCompletedByDay] = useState([0,0,0,0,0,0,0]);
 
   const pieData = {
     labels: ['Completado', 'Pendiente'],
@@ -64,7 +65,7 @@ export default function ProgressOverview() {
     datasets: [
       {
         label: 'Tareas completadas por día',
-        data: [1, 3, 2, 4, 1, 0, 2],
+        data: completedByDay,
         fill: false,
         borderColor: '#60a5fa',
         tension: 0.3,
@@ -101,11 +102,18 @@ export default function ProgressOverview() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       let completedCount = 0
       let pendingCount = 0
+      let byDay = [0,0,0,0,0,0,0];
 
       snapshot.forEach((doc) => {
         const task = doc.data()
-        if (task.Completed) {
+        if (task.completed) {
           completedCount++
+          if (task.completedAt) {
+            const date = task.completedAt.toDate ? task.completedAt.toDate() : new Date(task.completedAt);
+            let day = date.getDay();
+            day = day === 0 ? 6 : day - 1;
+            byDay[day]++;
+          }
         } else {
           pendingCount++
         }
@@ -113,6 +121,7 @@ export default function ProgressOverview() {
 
       setCompleted(completedCount)
       setPending(pendingCount)
+      setCompletedByDay(byDay)
     })
 
     return () => unsubscribe()
@@ -133,7 +142,7 @@ export default function ProgressOverview() {
       {/* Card Gráfico de línea */}
       <Card className="p-4">
         <CardContent className="flex flex-col space-y-2">
-          <h3 className="text-lg font-semibold text-gray-700">Progreso semanal (Mock)</h3>
+          <h3 className="text-lg font-semibold text-gray-700">Progreso semanal</h3>
           <div className="h-[200px]">
             <Line data={lineData} options={lineOptions} />
           </div>

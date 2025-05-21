@@ -48,8 +48,7 @@ function TaskForm({ onTaskAdded, initialData = null }) {
         
         const q = query(
           collection(db, 'subjects'),
-          where('userId', '==', user.uid),
-          where('isActive', '==', true)
+          where('userId', '==', user.uid)
         );
         console.log('Query de materias:', q);
         const snapshot = await getDocs(q);

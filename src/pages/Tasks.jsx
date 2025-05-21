@@ -41,6 +41,15 @@ function Tasks() {
     return true;
   });
 
+  const priorityOrder = { alta: 0, media: 1, baja: 2 };
+  const sortedTasks = sortBy === 'priority'
+    ? [...filteredTasks].sort((a, b) => {
+        const pa = priorityOrder[a.priority] ?? 3;
+        const pb = priorityOrder[b.priority] ?? 3;
+        return pa - pb;
+      })
+    : filteredTasks;
+
   const handleTaskAdded = (newTask) => {
     if (!newTask.id) {
       console.error('La tarea no tiene un ID válido');
@@ -113,17 +122,17 @@ function Tasks() {
             </div>
 
             <div className="text-sm text-gray-500">
-              {filteredTasks.length} tarea{filteredTasks.length !== 1 ? 's' : ''}
+              {sortedTasks.length} tarea{sortedTasks.length !== 1 ? 's' : ''}
             </div>
           </div>
 
           <div className="space-y-4">
-            {filteredTasks.length === 0 ? (
+            {sortedTasks.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 No hay tareas {filter !== 'all' && 'con este filtro'}
               </div>
             ) : (
-              filteredTasks.map((task) => (
+              sortedTasks.map((task) => (
                 <TaskItem
                   key={task.id}
                   task={task}

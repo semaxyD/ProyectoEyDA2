@@ -47,8 +47,7 @@ function Dashboard() {
 
     const subjectsQuery = query(
       collection(db, 'subjects'),
-      where('userId', '==', userId),
-      where('isActive', '==', true)
+      where('userId', '==', userId)
     );
     const unsubscribeSubjects = onSnapshot(subjectsQuery, (subjectsSnapshot) => {
       const subjectsData = subjectsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -125,7 +124,7 @@ function Dashboard() {
                   <div key={subject.id} className="bg-white rounded-xl shadow p-4 flex justify-between items-center hover:scale-[1.01] transition-transform">
                     <div>
                       <h3 className="text-lg font-semibold text-[#284dcb]">{subject.name}</h3>
-                      <p className="text-sm text-gray-500">Semestre: {subject.semester}</p>
+                      <p className="text-sm text-gray-500">Créditos: {subject.credits}</p>
                     </div>
                   </div>
                   ))}
@@ -139,18 +138,6 @@ function Dashboard() {
               >
                 <SquareLibrary className="mr-2 h-4 w-4 text-white" />
                 <p className='text-white'>Ver todas las materias</p>
-              </Button>
-              <Button
-                onClick={() => {
-                  toast({
-                    title: "Próximamente",
-                    description: "Esta función estará disponible pronto",
-                  });
-                }}
-                className="w-full bg-gradient-to-r from-[#284dcb] to-[#4168e3] hover:opacity-90 transition-opacity"
-              >
-                <PlusCircle className="mr-2 h-4 w-4 text-white" />
-                <p className='text-white'>Agregar Materia</p>
               </Button>
             </div>
           </div>
@@ -171,7 +158,9 @@ function Dashboard() {
                     <div>
                       <h3 className="text-lg font-semibold text-[#284dcb]">{task.title}</h3>
                       <p className="text-sm text-gray-600">
-                        Pertenece a {task.tags && task.tags.length > 0 ? task.tags[0] : 'Sin materia'}
+                        Pertenece a {
+                          subjects.find(s => s.id === task.subjectId)?.name || 'Sin materia'
+                        }
                       </p>
                       <p className="text-sm text-gray-500">Prioridad: {task.priority || 'Sin prioridad'}</p>
                     </div>
